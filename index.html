@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GreenCycle - ระบบค้นหาศูนย์รีไซเคิลและจำแนกขยะ</title>
     <style>
-        /* ส่วนของการออกแบบหน้าตาเว็บ (CSS) */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f7f4;
@@ -65,7 +64,10 @@
             border: 1px solid #d8f3dc;
             display: none;
         }
-        /* กำหนดขนาดของแผนที่ Google Maps */
+        .highlight-text {
+            color: #2d6a4f;
+            font-weight: bold;
+        }
         #map-container {
             width: 100%;
             height: 300px;
@@ -82,18 +84,19 @@
     <h1>🌱 GreenCycle Web App</h1>
     <p class="subtitle">โครงงานนวัตกรรม STEM เพื่อสิ่งแวดล้อมที่ยั่งยืน</p>
 
-    <!-- ส่วนที่ 1: ระบบค้นหาศูนย์รีไซเคิลจากพิกัดและแสดง Google Maps -->
     <div class="section">
         <h3>📍 ระบบค้นหาและแสดงศูนย์รีไซเคิลบน Google Maps</h3>
         <p>คลิกเพื่อแชร์พิกัดของคุณ และค้นหาศูนย์รีไซเคิลที่ใกล้ที่สุดบนแผนที่จริง</p>
         <button onclick="findLocationWithMap()">ค้นหาศูนย์รีไซเคิลใกล้ตัวคุณ</button>
         
         <div id="geo-result" class="result-box">
-            <p><strong>พิกัดของคุณ:</strong> <span id="user-geo">-</span></p>
-            <p><strong>ศูนย์รีไซเคิลที่ใกล้ที่สุด:</strong> <span id="center-name" style="color:#2d6a4f; font-weight:bold;">-</span></p>
+            <p><strong>📍 พิกัดของคุณ:</strong> <span id="user-geo">-</span></p>
+            <hr style="border: 0; border-top: 1px dashed #d8f3dc; margin: 10px 0;">
+            <p><strong>🏢 ศูนย์รีไซเคิลที่ใกล้ที่สุด:</strong> <span id="center-name" class="highlight-text">-</span></p>
+            <p><strong>🌐 พิกัดศูนย์รีไซเคิล:</strong> <span id="center-geo" class="highlight-text">-</span></p>
+            <p><strong>🚗 ระยะห่างจากคุณ:</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
         </div>
 
-        <!-- กล่องสำหรับโหลดแผนที่ Google Maps -->
         <div id="map-container">
             <iframe 
                 id="google-map-iframe"
@@ -109,44 +112,56 @@
 </div>
 
 <script>
+    // ฟังก์ชันทางคณิตศาสตร์คำนวณระยะห่างทางพิกัดผิวโลกโค้ง (Haversine Formula) เป็นกิโลเมตร
+    function getDistanceInKm(lat1, lon1, lat2, lon2) {
+        var R = 6371; // รัศมีของโลก (กิโลเมตร)
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        var d = R * c; 
+        return d; // ผลลัพธ์เป็นกิโลเมตร
+    }
+
     function findLocationWithMap() {
-        // 1. ฐานข้อมูลพิกัดร้านรีไซเคิลจำลองในกรุงเทพฯ
         var centers = [
             { name: "ศูนย์รีไซเคิลขยะพลาสติกเขียวสยาม", lat: 13.7563, lon: 100.5018 },
             { name: "โรงรับซื้อกระดาษและโลหะเก่าบางซื่อ", lat: 13.8156, lon: 100.5612 },
             { name: "จุดรับทิ้งขยะอิเล็กทรอนิกส์ประจำจังหวัด", lat: 13.7226, lon: 100.5284 }
         ];
 
-        // 2. เรียกเปิดระบบขอสิทธิ์ดึงพิกัด GPS จริงจากอุปกรณ์ผู้ใช้
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 var userLat = position.coords.latitude;
                 var userLon = position.coords.longitude;
                 
-                // แสดงพิกัดตัวเลขบนหน้าจอ
                 document.getElementById("user-geo").innerText = "Lat " + userLat.toFixed(4) + ", Lon " + userLon.toFixed(4);
                 
                 var minDistance = Infinity;
                 var nearestCenter = null;
                 
-                // 3. คำนวณหาร้านที่ใกล้ที่สุดด้วยสูตรเรขาคณิตวิเคราะห์ (Euclidean Distance)
+                // วนลูปคำนวณระยะห่างจริงเป็นกิโลเมตรของทุกศูนย์
                 centers.forEach(function(center) {
-                    var distance = Math.sqrt(Math.pow(center.lat - userLat, 2) + Math.pow(center.lon - userLon, 2));
+                    var distance = getDistanceInKm(userLat, userLon, center.lat, center.lon);
                     if (distance < minDistance) {
                         minDistance = distance;
                         nearestCenter = center;
                     }
                 });
                 
-                // แสดงชื่อร้านรีไซเคิลที่ใกล้ที่สุด
+                // แสดงผลชื่อ พิกัด และระยะห่างบนหน้าเว็บ
                 document.getElementById("center-name").innerText = nearestCenter.name;
+                document.getElementById("center-geo").innerText = "Lat " + nearestCenter.lat + ", Lon " + nearestCenter.lon;
+                document.getElementById("center-dist").innerText = minDistance.toFixed(2) + " กิโลเมตร";
+                
                 document.getElementById("geo-result").style.display = "block";
                 
-                // 4. ผูกลิงก์แผนที่เข้ากับ iframe โดยโครงสร้าง URL ที่เว้นช่องไฟและตัวแปรถูกต้องสมบูรณ์
+                // ดึงแผนที่ปักหมุด Google Maps
                 var mapIframe = document.getElementById("google-map-iframe");
                 mapIframe.src = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&t=&z=15&ie=UTF8&iwloc=&output=embed";
                 
-                // เปิดกล่องแสดงผลแผนที่ Google Maps บนหน้าจอ
                 document.getElementById("map-container").style.display = "block";
                 
             }, function(error) {
