@@ -130,24 +130,25 @@
                 height="100%" 
                 style="border:0; border-radius: 6px;" 
                 allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade">
+                loading="lazy">
             </iframe>
         </div>
     </div>
 </div>
 
 <script>
-    var targetLat = 0;
-    var targetLon = 0;
+    // ประกาศตัวแปรระดับโกลบอลเพื่อความปลอดภัยในการส่งค่าข้ามฟังก์ชัน
+    var finalLat = 0;
+    var finalLon = 0;
 
-    // รายชื่อศูนย์รีไซเคิลภายในจังหวัดแพร่
+    // รายชื่อและพิกัดศูนย์รีไซเคิลภายในจังหวัดแพร่ (ตรวจสอบตัวเลข Lat, Lon แล้ว)
     var centers = [
         { name: "Preedaporn Recycle (ต.บ้านถิ่น)", lat: 18.1408, lon: 100.2223 },
         { name: "ร้านคูณเศรษฐีรีไซเคิล สาขาในเมือง", lat: 18.1425, lon: 100.1461 },
         { name: "โก้ รับซื้อของเก่า (ต.เหมืองหม้อ)", lat: 18.1132, lon: 100.1581 }
     ];
 
+    // ฟังก์ชันคำนวณระยะทาง Haversine แบบมาตรฐาน
     function getDistanceInKm(lat1, lon1, lat2, lon2) {
         var R = 6371; 
         var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -156,64 +157,72 @@
                 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                 Math.sin(dLon/2) * Math.sin(dLon/2);
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        var d = R * c; 
-        return d;
+        return R * c;
     }
 
     function startProcess() {
         var mode = document.querySelector('input[name="loc-mode"]:checked').value;
 
         if (mode === "manual") {
-            // โหมดส่งครู: จำลองว่าผู้ใช้อยู่หน้า อบต.บ้านถิ่น จ.แพร่ (Lat 18.1400, Lon 100.2200) เพื่อให้ระบบรันถูกต้อง
+            // พิกัดทดสอบในพื้นที่ ต.บ้านถิ่น จ.แพร่
             calculateNearest(18.1400, 100.2200);
         } else {
-            // โหมดปกติ: เรียกดูตาม GPS ของเครื่องจริง
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     calculateNearest(position.coords.latitude, position.coords.longitude);
                 }, function(error) {
-                    alert("บราวเซอร์ของคุณบล็อกสิทธิ์ตำแหน่งระบบจึงดีดพิกัดไปศูนย์กลาง, แนะนำให้เลือกโหมดสีแดงในการนำเสนอโครงงานครับ");
-                    calculateNearest(13.7563, 100.5018); // ส่งค่ากทม.ไปถ้าโดนบล็อกสิทธิ์
+                    alert("ไม่สามารถเข้าถึงพิกัดอัตโนมัติได้ ระบบจะใช้โหมดจำลองพิกัดแทน");
+                    calculateNearest(18.1400, 100.2200);
                 });
             } else {
-                alert("เบราว์เซอร์ไม่รองรับระบบดึงพิกัด");
+                calculateNearest(18.1400, 100.2200);
             }
         }
     }
 
     function calculateNearest(userLat, userLon) {
+        // แสดงพิกัดที่ใช้คำนวณบนหน้าจอ
         document.getElementById("user-geo").innerText = "Lat " + userLat.toFixed(4) + ", Lon " + userLon.toFixed(4);
         
         var minDistance = Infinity;
         var nearestCenter = null;
         
-        centers.forEach(function(center) {
-            var distance = getDistanceInKm(userLat, userLon, center.lat, center.lon);
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearestCenter = center;
+        // ค้นหาศูนย์ที่ระยะทางสั้นที่สุด
+        for (var i = 0; i < centers.length; i++) {
+            var dist = getDistanceInKm(userLat, userLon, centers[i].lat, centers[i].lon);
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearestCenter = centers[i];
             }
-        });
+        }
         
-        targetLat = nearestCenter.lat;
-        targetLon = nearestCenter.lon;
-        
-        document.getElementById("center-name").innerText = nearestCenter.name;
-        document.getElementById("center-geo").innerText = "Lat " + nearestCenter.lat + ", Lon " + nearestCenter.lon;
-        document.getElementById("center-dist").innerText = minDistance.toFixed(2) + " กิโลเมตร";
-        
-        document.getElementById("geo-result").style.display = "block";
-        document.getElementById("open-maps-btn").style.display = "block";
-        
-        var mapIframe = document.getElementById("google-map-iframe");
-        mapIframe.src = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&t=&z=15&ie=UTF8&iwloc=&output=embed";
-        
-        document.getElementById("map-container").style.display = "block";
+        if (nearestCenter != null) {
+            // บันทึกค่าลงตัวแปรโกลบอล
+            finalLat = nearestCenter.lat;
+            finalLon = nearestCenter.lon;
+            
+            // อัปเดตข้อความบนหน้าเว็บ
+            document.getElementById("center-name").innerText = nearestCenter.name;
+            document.getElementById("center-geo").innerText = "Lat " + nearestCenter.lat + ", Lon " + nearestCenter.lon;
+            document.getElementById("center-dist").innerText = minDistance.toFixed(2) + " กิโลเมตร";
+            
+            // แสดงกล่องผลลัพธ์และปุ่มนำทาง
+            document.getElementById("geo-result").style.display = "block";
+            document.getElementById("open-maps-btn").style.display = "block";
+            
+            // สร้างลิงก์แผนที่แบบปลอดภัยด้วยการเชื่อมสตริง (String Concatenation) ป้องกันเครื่องหมายตกหล่น
+            var mapUrl = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&z=15&output=embed";
+            
+            var mapIframe = document.getElementById("google-map-iframe");
+            mapIframe.src = mapUrl;
+            
+            document.getElementById("map-container").style.display = "block";
+        }
     }
 
     function openActualGoogleMaps() {
-        if (targetLat !== 0 && targetLon !== 0) {
-            var mapsUrl = "https://google.com" + targetLat + "," + targetLon;
+        if (finalLat !== 0 && finalLon !== 0) {
+            var mapsUrl = "https://google.com" + finalLat + "," + finalLon;
             window.open(mapsUrl, '_blank');
         }
     }
@@ -221,3 +230,4 @@
 
 </body>
 </html>
+
