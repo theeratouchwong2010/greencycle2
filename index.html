@@ -56,6 +56,14 @@
         button:hover {
             background-color: #40916c;
         }
+        .btn-blue {
+            background-color: #1a73e8;
+            margin-top: 12px;
+            display: none; /* ซ่อนไว้ก่อนจนกว่าจะกดคำนวณพิกัด */
+        }
+        .btn-blue:hover {
+            background-color: #155cb4;
+        }
         .result-box {
             margin-top: 15px;
             padding: 15px;
@@ -95,6 +103,9 @@
             <p><strong>🏢 ศูนย์รีไซเคิลที่ใกล้ที่สุด:</strong> <span id="center-name" class="highlight-text">-</span></p>
             <p><strong>🌐 พิกัดศูนย์รีไซเคิล:</strong> <span id="center-geo" class="highlight-text">-</span></p>
             <p><strong>🚗 ระยะห่างจากคุณ:</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
+            
+            <!-- ปุ่มใหม่: กดเพื่อเปิดแอป Google Maps จริงดึงพิกัดไปนำทาง -->
+            <button id="open-maps-btn" class="btn-blue" onclick="openActualGoogleMaps()">🗺️ เปิดนำทางบน Google Maps จริง</button>
         </div>
 
         <div id="map-container">
@@ -112,6 +123,10 @@
 </div>
 
 <script>
+    // ตัวแปรส่วนกลางสำหรับเก็บพิกัดเป้าหมาย เพื่อส่งต่อไปยังปุ่มเปิด Google Maps จริง
+    var targetLat = 0;
+    var targetLon = 0;
+
     // ฟังก์ชันทางคณิตศาสตร์คำนวณระยะห่างทางพิกัดผิวโลกโค้ง (Haversine Formula) เป็นกิโลเมตร
     function getDistanceInKm(lat1, lon1, lat2, lon2) {
         var R = 6371; // รัศมีของโลก (กิโลเมตร)
@@ -122,7 +137,7 @@
                 Math.sin(dLon/2) * Math.sin(dLon/2);
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         var d = R * c; 
-        return d; // ผลลัพธ์เป็นกิโลเมตร
+        return d;
     }
 
     function findLocationWithMap() {
@@ -142,7 +157,6 @@
                 var minDistance = Infinity;
                 var nearestCenter = null;
                 
-                // วนลูปคำนวณระยะห่างจริงเป็นกิโลเมตรของทุกศูนย์
                 centers.forEach(function(center) {
                     var distance = getDistanceInKm(userLat, userLon, center.lat, center.lon);
                     if (distance < minDistance) {
@@ -151,14 +165,20 @@
                     }
                 });
                 
-                // แสดงผลชื่อ พิกัด และระยะห่างบนหน้าเว็บ
+                // บันทึกพิกัดศูนย์ที่ใกล้ที่สุดลงตัวแปรส่วนกลาง
+                targetLat = nearestCenter.lat;
+                targetLon = nearestCenter.lon;
+                
+                // แสดงผลข้อความบนหน้าจอ
                 document.getElementById("center-name").innerText = nearestCenter.name;
                 document.getElementById("center-geo").innerText = "Lat " + nearestCenter.lat + ", Lon " + nearestCenter.lon;
                 document.getElementById("center-dist").innerText = minDistance.toFixed(2) + " กิโลเมตร";
                 
+                // เปิดกล่องผลลัพธ์และแสดงปุ่มนำทางสีน้ำเงิน
                 document.getElementById("geo-result").style.display = "block";
+                document.getElementById("open-maps-btn").style.display = "block";
                 
-                // ดึงแผนที่ปักหมุด Google Maps
+                // โหลดหน้าต่างแผนที่ Google Maps (ฝังในหน้าเว็บ)
                 var mapIframe = document.getElementById("google-map-iframe");
                 mapIframe.src = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&t=&z=15&ie=UTF8&iwloc=&output=embed";
                 
@@ -169,6 +189,14 @@
             });
         } else {
             alert("เบราว์เซอร์ของคุณไม่รองรับการระบุพิกัดตำแหน่ง");
+        }
+    }
+
+    // ฟังก์ชันเปิดลิงก์ไปยังแอป Google Maps จริงอย่างเป็นทางการ
+    function openActualGoogleMaps() {
+        if (targetLat !== 0 && targetLon !== 0) {
+            var mapsUrl = "https://google.com" + targetLat + "," + targetLon;
+            window.open(mapsUrl, '_blank');
         }
     }
 </script>
