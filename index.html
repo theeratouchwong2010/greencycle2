@@ -63,10 +63,21 @@
         button:hover {
             background-color: #40916c;
         }
+        /* ออกแบบปุ่มนำทางสีน้ำเงินสำหรับลิงก์ */
         .btn-blue {
+            display: none; /* ซ่อนไว้ก่อน */
+            width: 100%;
             background-color: #1a73e8;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
             margin-top: 12px;
-            display: none;
+            transition: 0.3s;
         }
         .btn-blue:hover {
             background-color: #155cb4;
@@ -120,7 +131,8 @@
             <p><strong>🌐 พิกัดศูนย์รีไซเคิล:</strong> <span id="center-geo" class="highlight-text">-</span></p>
             <p><strong>🚗 ระยะห่างจากคุณ:</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
             
-            <button id="open-maps-btn" class="btn-blue" onclick="openActualGoogleMaps()">🗺️ เปิดนำทางบน Google Maps จริง</button>
+            <!-- แก้ไขปุ่มให้เป็นแท็ก <a> เพื่อให้เปิดแอปนำทางได้โดยตรง ไม่โดนบล็อกป็อปอัป -->
+            <a id="open-maps-btn" class="btn-blue" target="_blank">🗺️ เปิดนำทางบน Google Maps จริง</a>
         </div>
 
         <div id="map-container">
@@ -137,18 +149,12 @@
 </div>
 
 <script>
-    // ประกาศตัวแปรระดับโกลบอลเพื่อความปลอดภัยในการส่งค่าข้ามฟังก์ชัน
-    var finalLat = 0;
-    var finalLon = 0;
-
-    // รายชื่อและพิกัดศูนย์รีไซเคิลภายในจังหวัดแพร่ (ตรวจสอบตัวเลข Lat, Lon แล้ว)
     var centers = [
         { name: "Preedaporn Recycle (ต.บ้านถิ่น)", lat: 18.1408, lon: 100.2223 },
         { name: "ร้านคูณเศรษฐีรีไซเคิล สาขาในเมือง", lat: 18.1425, lon: 100.1461 },
         { name: "โก้ รับซื้อของเก่า (ต.เหมืองหม้อ)", lat: 18.1132, lon: 100.1581 }
     ];
 
-    // ฟังก์ชันคำนวณระยะทาง Haversine แบบมาตรฐาน
     function getDistanceInKm(lat1, lon1, lat2, lon2) {
         var R = 6371; 
         var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -164,7 +170,6 @@
         var mode = document.querySelector('input[name="loc-mode"]:checked').value;
 
         if (mode === "manual") {
-            // พิกัดทดสอบในพื้นที่ ต.บ้านถิ่น จ.แพร่
             calculateNearest(18.1400, 100.2200);
         } else {
             if (navigator.geolocation) {
@@ -181,13 +186,11 @@
     }
 
     function calculateNearest(userLat, userLon) {
-        // แสดงพิกัดที่ใช้คำนวณบนหน้าจอ
         document.getElementById("user-geo").innerText = "Lat " + userLat.toFixed(4) + ", Lon " + userLon.toFixed(4);
         
         var minDistance = Infinity;
         var nearestCenter = null;
         
-        // ค้นหาศูนย์ที่ระยะทางสั้นที่สุด
         for (var i = 0; i < centers.length; i++) {
             var dist = getDistanceInKm(userLat, userLon, centers[i].lat, centers[i].lon);
             if (dist < minDistance) {
@@ -197,37 +200,25 @@
         }
         
         if (nearestCenter != null) {
-            // บันทึกค่าลงตัวแปรโกลบอล
-            finalLat = nearestCenter.lat;
-            finalLon = nearestCenter.lon;
-            
-            // อัปเดตข้อความบนหน้าเว็บ
             document.getElementById("center-name").innerText = nearestCenter.name;
             document.getElementById("center-geo").innerText = "Lat " + nearestCenter.lat + ", Lon " + nearestCenter.lon;
             document.getElementById("center-dist").innerText = minDistance.toFixed(2) + " กิโลเมตร";
             
-            // แสดงกล่องผลลัพธ์และปุ่มนำทาง
             document.getElementById("geo-result").style.display = "block";
-            document.getElementById("open-maps-btn").style.display = "block";
             
-            // สร้างลิงก์แผนที่แบบปลอดภัยด้วยการเชื่อมสตริง (String Concatenation) ป้องกันเครื่องหมายตกหล่น
+            // ปรับปรุงส่วนปุ่มนำทาง: ฉีดลิงก์ Google Maps อย่างเป็นทางการเข้าแท็กโดยตรงเพื่อความปลอดภัย
+            var btnMaps = document.getElementById("open-maps-btn");
+            btnMaps.href = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon;
+            btnMaps.style.display = "block"; // แสดงปุ่มนำทาง
+            
             var mapUrl = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&z=15&output=embed";
-            
             var mapIframe = document.getElementById("google-map-iframe");
             mapIframe.src = mapUrl;
             
             document.getElementById("map-container").style.display = "block";
         }
     }
-
-    function openActualGoogleMaps() {
-        if (finalLat !== 0 && finalLon !== 0) {
-            var mapsUrl = "https://google.com" + finalLat + "," + finalLon;
-            window.open(mapsUrl, '_blank');
-        }
-    }
 </script>
 
 </body>
 </html>
-
