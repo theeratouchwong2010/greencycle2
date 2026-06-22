@@ -63,25 +63,6 @@
         button:hover {
             background-color: #40916c;
         }
-        /* ออกแบบปุ่มนำทางสีน้ำเงินสำหรับลิงก์ */
-        .btn-blue {
-            display: none; /* ซ่อนไว้ก่อน */
-            width: 100%;
-            background-color: #1a73e8;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-            box-sizing: border-box;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            margin-top: 12px;
-            transition: 0.3s;
-        }
-        .btn-blue:hover {
-            background-color: #155cb4;
-        }
         .result-box {
             margin-top: 15px;
             padding: 15px;
@@ -130,9 +111,7 @@
             <p><strong>🏢 ศูนย์รีไซเคิลที่ใกล้ที่สุด:</strong> <span id="center-name" class="highlight-text">-</span></p>
             <p><strong>🌐 พิกัดศูนย์รีไซเคิล:</strong> <span id="center-geo" class="highlight-text">-</span></p>
             <p><strong>🚗 ระยะห่างจากคุณ:</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
-            
-            <!-- แก้ไขปุ่มให้เป็นแท็ก <a> เพื่อให้เปิดแอปนำทางได้โดยตรง ไม่โดนบล็อกป็อปอัป -->
-            <a id="open-maps-btn" class="btn-blue" target="_blank">🗺️ เปิดนำทางบน Google Maps จริง</a>
+            <!-- ลบแท็กปุ่มนำทางสีน้ำเงินออกเรียบร้อยแล้ว -->
         </div>
 
         <div id="map-container">
@@ -205,11 +184,6 @@
             document.getElementById("center-dist").innerText = minDistance.toFixed(2) + " กิโลเมตร";
             
             document.getElementById("geo-result").style.display = "block";
-            
-            // ปรับปรุงส่วนปุ่มนำทาง: ฉีดลิงก์ Google Maps อย่างเป็นทางการเข้าแท็กโดยตรงเพื่อความปลอดภัย
-            var btnMaps = document.getElementById("open-maps-btn");
-            btnMaps.href = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon;
-            btnMaps.style.display = "block"; // แสดงปุ่มนำทาง
             
             var mapUrl = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&z=15&output=embed";
             var mapIframe = document.getElementById("google-map-iframe");
