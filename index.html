@@ -86,7 +86,7 @@
 
     <div class="section">
         <h3>🔍 ค้นหาศูนย์รีไซเคิลใกล้ตัวคุณ</h3>
-        <p>กดปุ่มด้านล่างเพื่ออนุญาตให้ระบบดึงพิกัด GPS อัตโนมัติและประมวลผลหาร้านที่ใกล้ที่สุดในจังหวัดแพร่</p>
+        <p>กดปุ่มด้านล่างเพื่ออนุญาตให้ระบบดึงพิกัด GPS อัตโนมัติจากอุปกรณ์ของคุณ และคำนวณหาร้านรับซื้อของเก่าที่ใกล้ที่สุดในจังหวัดแพร่</p>
         <button onclick="startProcess()">ค้นหาศูนย์รีไซเคิลใกล้ตัวคุณ</button>
         
         <div id="geo-result" class="result-box">
@@ -111,12 +111,14 @@
 </div>
 
 <script>
+    // ฐานข้อมูลรายชื่อและพิกัดศูนย์รีไซเคิลภายในจังหวัดแพร่
     var centers = [
         { name: "Preedaporn Recycle (ต.บ้านถิ่น)", lat: 18.1408, lon: 100.2223 },
         { name: "ร้านคูณเศรษฐีรีไซเคิล สาขาในเมือง", lat: 18.1425, lon: 100.1461 },
         { name: "โก้ รับซื้อของเก่า (ต.เหมืองหม้อ)", lat: 18.1132, lon: 100.1581 }
     ];
 
+    // ฟังก์ชันคำนวณระยะทาง Haversine เพื่อหาระยะห่างที่สั้นที่สุดบนพิกัดจริง
     function getDistanceInKm(lat1, lon1, lat2, lon2) {
         var R = 6371; 
         var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -128,18 +130,20 @@
         return R * c;
     }
 
+    // ฟังก์ชันเริ่มต้นดึงพิกัดจริงจากอุปกรณ์ของผู้ใช้โดยตรง (ไม่มีโหมดสลับจำลองแล้ว)
     function startProcess() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 calculateNearest(position.coords.latitude, position.coords.longitude);
             }, function(error) {
-                alert("ระบบไม่สามารถเข้าถึงตำแหน่งของคุณได้ โปรดตรวจสอบการเปิดสิทธิ์การเข้าถึงพิกัด (Location) บนบราวเซอร์และอุปกรณ์ของคุณ");
+                alert("ระบบไม่สามารถเข้าถึงตำแหน่งของคุณได้ โปรดเปิดสิทธิ์เข้าถึงพิกัด (Location) บนอุปกรณ์และเบราว์เซอร์ของคุณ");
             });
         } else {
-            alert("เบราว์เซอร์หรืออุปกรณ์ของคุณไม่รองรับระบบการระบุตำแหน่งทางภูมิศาสตร์");
+            alert("เบราว์เซอร์หรืออุปกรณ์ของคุณไม่รองรับระบบดึงพิกัดพิกัดตำแหน่งทางภูมิศาสตร์");
         }
     }
 
+    // ประมวลผลลูปคณิตศาสตร์และปักหมุดลงบนหน้าต่าง Google Maps
     function calculateNearest(userLat, userLon) {
         document.getElementById("user-geo").innerText = "Lat " + userLat.toFixed(4) + ", Lon " + userLon.toFixed(4);
         
