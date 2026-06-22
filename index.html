@@ -41,13 +41,6 @@
             margin-top: 0;
             color: #1b4332;
         }
-        .radio-group {
-            margin-bottom: 15px;
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #d8f3dc;
-        }
         button {
             width: 100%;
             background-color: #52b788;
@@ -92,28 +85,19 @@
     <p class="subtitle">ระบบค้นหาศูนย์รีไซเคิลและร้านรับซื้อของเก่าในจังหวัดแพร่</p>
 
     <div class="section">
-        <h3>🛠️ 1. เลือกโหมดระบุตำแหน่งพิกัดของคุณ</h3>
-        <div class="radio-group">
-            <input type="radio" id="mode-gps" name="loc-mode" value="gps" checked>
-            <label id="lbl-gps" for="mode-gps" style="font-weight: bold; color: #1b4332;">🛰️ ใช้พิกัดจริงอัตโนมัติ (จาก GPS/อินเทอร์เน็ตเครื่อง)</label>
-            <br><br>
-            <input type="radio" id="mode-phrae" name="loc-mode" value="manual">
-            
-        </div>
-
-        <h3>🔍 2. เริ่มการค้นหา</h3>
-        <p>กดปุ่มด้านล่างเพื่อประมวลผลหาร้านรับซื้อของเก่าภายในจังหวัดแพร่</p>
+        <h3>🔍 ค้นหาศูนย์รีไซเคิลใกล้ตัวคุณ</h3>
+        <p>กดปุ่มด้านล่างเพื่ออนุญาตให้ระบบดึงพิกัด GPS อัตโนมัติและประมวลผลหาร้านที่ใกล้ที่สุดในจังหวัดแพร่</p>
         <button onclick="startProcess()">ค้นหาศูนย์รีไซเคิลใกล้ตัวคุณ</button>
         
         <div id="geo-result" class="result-box">
-            <p><strong>📍 พิกัดปัจจุบันที่ระบบใช้คำนวณ:</strong> <span id="user-geo">-</span></p>
+            <p><strong>📍 พิกัดปัจจุบันของคุณ:</strong> <span id="user-geo">-</span></p>
             <hr style="border: 0; border-top: 1px dashed #d8f3dc; margin: 10px 0;">
             <p><strong>🏢 ศูนย์รีไซเคิลที่ใกล้ที่สุด:</strong> <span id="center-name" class="highlight-text">-</span></p>
             <p><strong>🌐 พิกัดศูนย์รีไซเคิล:</strong> <span id="center-geo" class="highlight-text">-</span></p>
             <p><strong>🚗 ระยะห่างจากคุณ:</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
-            <!-- ลบแท็กปุ่มนำทางสีน้ำเงินออกเรียบร้อยแล้ว -->
         </div>
 
+        <!-- แผนที่จำลอง Google Maps ฝังในเว็บหน้าจอหลัก -->
         <div id="map-container">
             <iframe 
                 id="google-map-iframe"
@@ -128,12 +112,14 @@
 </div>
 
 <script>
+    // ฐานข้อมูลตำแหน่งจริงของร้านรีไซเคิลในเขตจังหวัดแพร่
     var centers = [
         { name: "Preedaporn Recycle (ต.บ้านถิ่น)", lat: 18.1408, lon: 100.2223 },
         { name: "ร้านคูณเศรษฐีรีไซเคิล สาขาในเมือง", lat: 18.1425, lon: 100.1461 },
         { name: "โก้ รับซื้อของเก่า (ต.เหมืองหม้อ)", lat: 18.1132, lon: 100.1581 }
     ];
 
+    // สูตรคำนวณระยะทาง Haversine สำหรับหารหัสภูมิศาสตร์ผิวโค้ง
     function getDistanceInKm(lat1, lon1, lat2, lon2) {
         var R = 6371; 
         var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -145,25 +131,20 @@
         return R * c;
     }
 
+    // เริ่มทำงานดึงพิกัดจากตัวเครื่องผู้ใช้งานโดยตรง
     function startProcess() {
-        var mode = document.querySelector('input[name="loc-mode"]:checked').value;
-
-        if (mode === "manual") {
-            calculateNearest(18.1400, 100.2200);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                calculateNearest(position.coords.latitude, position.coords.longitude);
+            }, function(error) {
+                alert("ระบบไม่สามารถเข้าถึงตำแหน่งของคุณได้ โปรดตรวจสอบการเปิดสิทธิ์การเข้าถึงพิกัด (Location) บนบราวเซอร์และอุปกรณ์ของคุณ");
+            });
         } else {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    calculateNearest(position.coords.latitude, position.coords.longitude);
-                }, function(error) {
-                    alert("ไม่สามารถเข้าถึงพิกัดอัตโนมัติได้ ระบบจะใช้โหมดจำลองพิกัดแทน");
-                    calculateNearest(18.1400, 100.2200);
-                });
-            } else {
-                calculateNearest(18.1400, 100.2200);
-            }
+            alert("เบราว์เซอร์หรืออุปกรณ์ของคุณไม่รองรับระบบการระบุตำแหน่งทางภูมิศาสตร์");
         }
     }
 
+    // คำนวณความต่างและปักหมุด
     function calculateNearest(userLat, userLon) {
         document.getElementById("user-geo").innerText = "Lat " + userLat.toFixed(4) + ", Lon " + userLon.toFixed(4);
         
