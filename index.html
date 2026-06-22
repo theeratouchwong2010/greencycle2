@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GreenCycle - ระบบค้นหาศูนย์รีไซเคิลและจำแนกขยะ</title>
+    <title>GreenCycle แพร่ - ระบบค้นหาศูนย์รีไซเคิล</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -59,7 +59,7 @@
         .btn-blue {
             background-color: #1a73e8;
             margin-top: 12px;
-            display: none; /* ซ่อนไว้ก่อนจนกว่าจะกดคำนวณพิกัด */
+            display: none;
         }
         .btn-blue:hover {
             background-color: #155cb4;
@@ -89,22 +89,21 @@
 <body>
 
 <div class="container">
-    <h1>🌱 GreenCycle Web App</h1>
-    <p class="subtitle">โครงงานนวัตกรรม STEM เพื่อสิ่งแวดล้อมที่ยั่งยืน</p>
+    <h1>🌱 GreenCycle แพร่</h1>
+    <p class="subtitle">ระบบค้นหาศูนย์รีไซเคิลและร้านรับซื้อของเก่าในจังหวัดแพร่</p>
 
     <div class="section">
         <h3>📍 ระบบค้นหาและแสดงศูนย์รีไซเคิลบน Google Maps</h3>
-        <p>คลิกเพื่อแชร์พิกัดของคุณ และค้นหาศูนย์รีไซเคิลที่ใกล้ที่สุดบนแผนที่จริง</p>
+        <p>คลิกเพื่อแชร์พิกัดของคุณ และค้นหาศูนย์รีไซเคิลที่ใกล้ที่สุดในจังหวัดแพร่บนแผนที่จริง</p>
         <button onclick="findLocationWithMap()">ค้นหาศูนย์รีไซเคิลใกล้ตัวคุณ</button>
         
         <div id="geo-result" class="result-box">
-            <p><strong>📍 พิกัดของคุณ:</strong> <span id="user-geo">-</span></p>
+            <p><strong>📍 พิกัดปัจจุบันของคุณ:</strong> <span id="user-geo">-</span></p>
             <hr style="border: 0; border-top: 1px dashed #d8f3dc; margin: 10px 0;">
             <p><strong>🏢 ศูนย์รีไซเคิลที่ใกล้ที่สุด:</strong> <span id="center-name" class="highlight-text">-</span></p>
             <p><strong>🌐 พิกัดศูนย์รีไซเคิล:</strong> <span id="center-geo" class="highlight-text">-</span></p>
             <p><strong>🚗 ระยะห่างจากคุณ:</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
             
-            <!-- ปุ่มใหม่: กดเพื่อเปิดแอป Google Maps จริงดึงพิกัดไปนำทาง -->
             <button id="open-maps-btn" class="btn-blue" onclick="openActualGoogleMaps()">🗺️ เปิดนำทางบน Google Maps จริง</button>
         </div>
 
@@ -123,13 +122,11 @@
 </div>
 
 <script>
-    // ตัวแปรส่วนกลางสำหรับเก็บพิกัดเป้าหมาย เพื่อส่งต่อไปยังปุ่มเปิด Google Maps จริง
     var targetLat = 0;
     var targetLon = 0;
 
-    // ฟังก์ชันทางคณิตศาสตร์คำนวณระยะห่างทางพิกัดผิวโลกโค้ง (Haversine Formula) เป็นกิโลเมตร
     function getDistanceInKm(lat1, lon1, lat2, lon2) {
-        var R = 6371; // รัศมีของโลก (กิโลเมตร)
+        var R = 6371; 
         var dLat = (lat2 - lat1) * Math.PI / 180;
         var dLon = (lon2 - lon1) * Math.PI / 180;
         var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -141,10 +138,11 @@
     }
 
     function findLocationWithMap() {
+        // อัปเดตรายชื่อและพิกัดจริงของร้านรับซื้อของเก่าในจังหวัดแพร่
         var centers = [
-            { name: "ศูนย์รีไซเคิลขยะพลาสติกเขียวสยาม", lat: 13.7563, lon: 100.5018 },
-            { name: "โรงรับซื้อกระดาษและโลหะเก่าบางซื่อ", lat: 13.8156, lon: 100.5612 },
-            { name: "จุดรับทิ้งขยะอิเล็กทรอนิกส์ประจำจังหวัด", lat: 13.7226, lon: 100.5284 }
+            { name: "Preedaporn Recycle (ต.บ้านถิ่น)", lat: 18.1408, lon: 100.2223 },
+            { name: "ร้านคูณเศรษฐีรีไซเคิล สาขาในเมือง", lat: 18.1425, lon: 100.1461 },
+            { name: "โก้ รับซื้อของเก่า (ต.เหมืองหม้อ)", lat: 18.1132, lon: 100.1581 }
         ];
 
         if (navigator.geolocation) {
@@ -165,20 +163,16 @@
                     }
                 });
                 
-                // บันทึกพิกัดศูนย์ที่ใกล้ที่สุดลงตัวแปรส่วนกลาง
                 targetLat = nearestCenter.lat;
                 targetLon = nearestCenter.lon;
                 
-                // แสดงผลข้อความบนหน้าจอ
                 document.getElementById("center-name").innerText = nearestCenter.name;
                 document.getElementById("center-geo").innerText = "Lat " + nearestCenter.lat + ", Lon " + nearestCenter.lon;
                 document.getElementById("center-dist").innerText = minDistance.toFixed(2) + " กิโลเมตร";
                 
-                // เปิดกล่องผลลัพธ์และแสดงปุ่มนำทางสีน้ำเงิน
                 document.getElementById("geo-result").style.display = "block";
                 document.getElementById("open-maps-btn").style.display = "block";
                 
-                // โหลดหน้าต่างแผนที่ Google Maps (ฝังในหน้าเว็บ)
                 var mapIframe = document.getElementById("google-map-iframe");
                 mapIframe.src = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&t=&z=15&ie=UTF8&iwloc=&output=embed";
                 
@@ -192,7 +186,6 @@
         }
     }
 
-    // ฟังก์ชันเปิดลิงก์ไปยังแอป Google Maps จริงอย่างเป็นทางการ
     function openActualGoogleMaps() {
         if (targetLat !== 0 && targetLon !== 0) {
             var mapsUrl = "https://google.com" + targetLat + "," + targetLon;
