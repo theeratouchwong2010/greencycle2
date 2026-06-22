@@ -99,8 +99,6 @@
                 allowfullscreen="" 
                 loading="lazy" 
                 referrerpolicy="no-referrer-when-downgrade">
-                mapIframe.src = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&z=15&output=embed";
-
             </iframe>
         </div>
     </div>
@@ -137,7 +135,7 @@
                 
                 // ใช้การต่อสตริงด้วยเครื่องหมายบวกธรรมดา เพื่อป้องกันความคลาดเคลื่อนของเครื่องหมายคำพูด
                 var mapIframe = document.getElementById("google-map-iframe");
-                mapIframe.src = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&t=&z=15&ie=UTF8&iwloc=&output=embed";
+                mapIframe.src = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&z=15&output=embed";
                 
                 document.getElementById("map-container").style.display = "block";
                 
