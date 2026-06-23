@@ -56,6 +56,25 @@
         button:hover {
             background-color: #40916c;
         }
+        /* ออกแบบปุ่มเปิดแอป Google Maps นำทางจริง */
+        .btn-blue {
+            display: none;
+            width: 100%;
+            background-color: #1a73e8;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 12px;
+            transition: 0.3s;
+        }
+        .btn-blue:hover {
+            background-color: #155cb4;
+        }
         .result-box {
             margin-top: 15px;
             padding: 15px;
@@ -68,7 +87,6 @@
             color: #2d6a4f;
             font-weight: bold;
         }
-        /* ซ่อนกล่องคอนเทนเนอร์ของแผนที่ไว้ตั้งแต่เริ่มต้น */
         #map-container {
             width: 100%;
             height: 300px;
@@ -95,10 +113,12 @@
             <hr style="border: 0; border-top: 1px dashed #d8f3dc; margin: 10px 0;">
             <p><strong>🏢 ศูนย์รีไซเคิลที่ใกล้ที่สุด:</strong> <span id="center-name" class="highlight-text">-</span></p>
             <p><strong>🌐 พิกัดศูนย์รีไซเคิล:</strong> <span id="center-geo" class="highlight-text">-</span></p>
-            <p><strong>🚗 ระยะห่างจากคุณ:</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
+            <p><strong>🚗 ระยะห่างแนวเส้นตรง (การกระจัด):</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
+            
+            <!-- ปุ่มเปิด Google Maps ของจริงเพื่อดูระยะทางตามถนนจริง -->
+            <a id="open-maps-btn" class="btn-blue" target="_blank">🗺️ ดูระยะทางบนถนนจริงและเปิดนำทาง</a>
         </div>
 
-        <!-- กล่องแสดงแผนที่ที่จะถูกสั่งให้แสดงผลหลังจากกดปุ่มคำนวณพิกัดแล้วเท่านั้น -->
         <div id="map-container">
             <iframe 
                 id="google-map-iframe"
@@ -130,6 +150,7 @@
         return R * c;
     }
 
+    // เริ่มทำงานดึงพิกัดจริงจากอุปกรณ์
     function startProcess() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
@@ -163,16 +184,17 @@
             
             document.getElementById("geo-result").style.display = "block";
             
-            // นำพิกัดที่คำนวณได้ไปผูกกับลิงก์แผนที่ของ Google Maps
+            // ผูกลิงก์พิกัดเข้ากับปุ่มนำทางสีน้ำเงินโดยตรง เพื่อความปลอดภัยและข้ามระบบบล็อกป็อปอัป
+            var btnMaps = document.getElementById("open-maps-btn");
+            btnMaps.href = "https://google.com" + userLat + "," + userLon + "&destination=" + nearestCenter.lat + "," + nearestCenter.lon;
+            btnMaps.style.display = "block"; 
+            
             var mapUrl = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&z=15&output=embed";
             var mapIframe = document.getElementById("google-map-iframe");
             mapIframe.src = mapUrl;
             
-            // เปิดแสดงผลกล่องแผนที่ Google Maps ขึ้นมาบนหน้าจอหลังจากประมวลผลสำเร็จ
             document.getElementById("map-container").style.display = "block";
         }
     }
 </script>
 
-</body>
-</html>
