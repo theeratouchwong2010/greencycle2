@@ -68,13 +68,14 @@
             color: #2d6a4f;
             font-weight: bold;
         }
+        /* ซ่อนกล่องคอนเทนเนอร์ของแผนที่ไว้ตั้งแต่เริ่มต้น */
         #map-container {
             width: 100%;
             height: 300px;
             margin-top: 15px;
             border-radius: 8px;
             border: 2px solid #52b788;
-            display: none;
+            display: none; 
         }
     </style>
 </head>
@@ -97,6 +98,7 @@
             <p><strong>🚗 ระยะห่างจากคุณ:</strong> <span id="center-dist" style="color: #d90429; font-weight: bold; font-size: 1.1em;">-</span></p>
         </div>
 
+        <!-- กล่องแสดงแผนที่ที่จะถูกสั่งให้แสดงผลหลังจากกดปุ่มคำนวณพิกัดแล้วเท่านั้น -->
         <div id="map-container">
             <iframe 
                 id="google-map-iframe"
@@ -111,14 +113,12 @@
 </div>
 
 <script>
-    // ฐานข้อมูลรายชื่อและพิกัดศูนย์รีไซเคิลภายในจังหวัดแพร่
     var centers = [
         { name: "Preedaporn Recycle (ต.บ้านถิ่น)", lat: 18.1408, lon: 100.2223 },
         { name: "ร้านคูณเศรษฐีรีไซเคิล สาขาในเมือง", lat: 18.1425, lon: 100.1461 },
         { name: "โก้ รับซื้อของเก่า (ต.เหมืองหม้อ)", lat: 18.1132, lon: 100.1581 }
     ];
 
-    // ฟังก์ชันคำนวณระยะทาง Haversine เพื่อหาระยะห่างที่สั้นที่สุดบนพิกัดจริง
     function getDistanceInKm(lat1, lon1, lat2, lon2) {
         var R = 6371; 
         var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -130,20 +130,18 @@
         return R * c;
     }
 
-    // ฟังก์ชันเริ่มต้นดึงพิกัดจริงจากอุปกรณ์ของผู้ใช้โดยตรง (ไม่มีโหมดสลับจำลองแล้ว)
     function startProcess() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 calculateNearest(position.coords.latitude, position.coords.longitude);
             }, function(error) {
-                alert("ระบบไม่สามารถเข้าถึงตำแหน่งของคุณได้ โปรดเปิดสิทธิ์เข้าถึงพิกัด (Location) บนอุปกรณ์และเบราว์เซอร์ของคุณ");
+                alert("ระบบไม่สามารถเข้าถึงตำแหน่งของคุณได้ โปรดตรวจสอบการเปิดสิทธิ์การเข้าถึงพิกัด (Location) บนบราวเซอร์และอุปกรณ์ของคุณ");
             });
         } else {
             alert("เบราว์เซอร์หรืออุปกรณ์ของคุณไม่รองรับระบบดึงพิกัดพิกัดตำแหน่งทางภูมิศาสตร์");
         }
     }
 
-    // ประมวลผลลูปคณิตศาสตร์และปักหมุดลงบนหน้าต่าง Google Maps
     function calculateNearest(userLat, userLon) {
         document.getElementById("user-geo").innerText = "Lat " + userLat.toFixed(4) + ", Lon " + userLon.toFixed(4);
         
@@ -165,10 +163,12 @@
             
             document.getElementById("geo-result").style.display = "block";
             
+            // นำพิกัดที่คำนวณได้ไปผูกกับลิงก์แผนที่ของ Google Maps
             var mapUrl = "https://google.com" + nearestCenter.lat + "," + nearestCenter.lon + "&z=15&output=embed";
             var mapIframe = document.getElementById("google-map-iframe");
             mapIframe.src = mapUrl;
             
+            // เปิดแสดงผลกล่องแผนที่ Google Maps ขึ้นมาบนหน้าจอหลังจากประมวลผลสำเร็จ
             document.getElementById("map-container").style.display = "block";
         }
     }
